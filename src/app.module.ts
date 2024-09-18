@@ -7,8 +7,9 @@ import { ItemsModule } from './items/items.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import config from './config/keys';
 
+@Global()
 @Module({
-  imports: [ItemsModule, MongooseModule.forRoot(config.mongoURI)],
+  imports: [ItemsModule, MongooseModule.forRoot(config.mongo_URI)],
   controllers: [AppController, ItemsController],
   providers: [AppService, ItemsService],
 })

@@ -2,6 +2,7 @@ import { Controller,Get, Post, Put, Delete, Body, Param,} from '@nestjs/common';
 import { CreateItemDto } from './dto/create-item.dto';
 import { ItemsService } from './items.service';
 import { Item } from './interfaces/item.interface';
+import { UpdateItemDto } from './dto/update-item.dto';
 
 @Controller('items')
 export class ItemsController {
@@ -13,7 +14,7 @@ export class ItemsController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id): Promise<Item> {
+  async findOne(@Param('id') id:string): Promise<Item> {
     return this.itemsService.findOne(id);
   }
 
@@ -28,7 +29,7 @@ export class ItemsController {
   }
 
   @Put(':id')
-  update(@Body() updateItemDto: CreateItemDto, @Param('id') id): Promise<Item> {
+  update(@Param('id') id: string, @Body() updateItemDto: UpdateItemDto): Promise<Item> {
     return this.itemsService.update(id, updateItemDto);
   }
 }
