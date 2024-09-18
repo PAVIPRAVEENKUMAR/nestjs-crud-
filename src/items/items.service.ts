@@ -7,7 +7,7 @@ import { UpdateItemDto } from './dto/Update-item.dto';
 
 @Injectable()
 export class ItemsService {
-  constructor(@InjectModel('Item') private readonly ItemsModel: Model<Item>) {}
+  constructor(@InjectModel('Item') private ItemsModel: Model<Item>) {}
 
   async findAll(): Promise<Item[]> {
     return await this.ItemsModel.find().exec();
@@ -26,7 +26,7 @@ export class ItemsService {
     return await this.ItemsModel.findByIdAndDelete(id).exec();
   }
 
-  async update(id: string, item: Item): Promise<Item> {
-    return await this.ItemsModel.findByIdAndUpdate(id, UpdateItemDto, { new: true }).exec();
+  async update(id: string, updateItemDto:UpdateItemDto ): Promise<Item> {
+    return await this.ItemsModel.findByIdAndUpdate(id, updateItemDto, { new: true }).exec();
   }
 }

@@ -4,10 +4,10 @@ import { ItemsService } from './items.service';
 import { ItemSchema } from './schema/items.schema';
 import { ItemsController } from './items.controller';
 
+
 @Module({
   imports: [MongooseModule.forFeature([{ name: 'Item', schema: ItemSchema }])],
-  providers: [ItemsService],
   controllers: [ItemsController],
-  exports: [ItemsService], 
+  providers: [ItemsService],
 })
-export class ItemsModule {}
+export class ItemModule {}
