@@ -6,7 +6,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import config from './config/keys';
 
 @Module({
-  imports: [ItemModule, MongooseModule.forRoot(config.mongo_URI)],
+  imports: [ItemModule, MongooseModule.forRoot(config.mongo_URI, {retryAttempts: 5,retryDelay: 4000})],
   providers: [AppService],
   controllers: [AppController],
 })
