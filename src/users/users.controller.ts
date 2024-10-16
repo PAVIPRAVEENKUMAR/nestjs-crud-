@@ -1,5 +1,6 @@
 import { Controller, Post, Body, Get, Headers, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from '../auth/auth.service';
+import {CreateUserDto} from '../users/dto/user.dto'
 
 @Controller('users')
 export class UsersController {
@@ -7,7 +8,7 @@ export class UsersController {
 
   
   @Post('register')
-  async register(@Body() body: { email: string, password: string }) {
+  async register(@Body() body:CreateUserDto) {
     return this.authService.register(body.email, body.password);
   }
 
@@ -16,7 +17,6 @@ export class UsersController {
   async login(@Body() body: { email: string, password: string }) {
     return this.authService.login(body.email, body.password);
   }
-
   
   @Get('profile')
   async getProfile(@Headers('authorization') authHeader: string) {

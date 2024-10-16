@@ -10,9 +10,10 @@ exports.UsersModule = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const jwt_1 = require("@nestjs/jwt");
-const auth_service_1 = require("../auth/auth.service");
 const user_schema_1 = require("./schema/user.schema");
 const users_service_1 = require("./users.service");
+const users_controller_1 = require("./users.controller");
+const auth_service_1 = require("../auth/auth.service");
 let UsersModule = class UsersModule {
 };
 exports.UsersModule = UsersModule;
@@ -25,8 +26,9 @@ exports.UsersModule = UsersModule = __decorate([
                 signOptions: { expiresIn: '1h' },
             }),
         ],
+        controllers: [users_controller_1.UsersController],
         providers: [auth_service_1.AuthService, users_service_1.UsersService],
-        exports: [auth_service_1.AuthService, users_service_1.UsersService, mongoose_1.MongooseModule],
+        exports: [users_service_1.UsersService],
     })
 ], UsersModule);
 //# sourceMappingURL=users.module.js.map

@@ -11,20 +11,28 @@ const common_1 = require("@nestjs/common");
 const items_module_1 = require("./items/items.module");
 const mongoose_1 = require("@nestjs/mongoose");
 const users_module_1 = require("./users/users.module");
-const keys_1 = require("./config/keys");
-const auth_service_1 = require("./auth/auth.service");
 const jwt_1 = require("@nestjs/jwt");
+const app_controller_1 = require("./app.controller");
+const app_service_1 = require("./app.service");
+const config_1 = require("@nestjs/config");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
-        imports: [items_module_1.ItemModule, mongoose_1.MongooseModule.forRoot(keys_1.default.mongo_URI, { retryAttempts: 5, retryDelay: 5000 }), users_module_1.UsersModule, jwt_1.JwtModule.register({
+        imports: [users_module_1.UsersModule, items_module_1.ItemModule, config_1.ConfigModule.forRoot({
+                isGlobal: true,
+            }), mongoose_1.MongooseModule.forRootAsync({ imports: [config_1.ConfigModule],
+                inject: [config_1.ConfigService],
+                useFactory: (configService) => ({
+                    uri: configService.get('MONGO_URI'),
+                }),
+            }), jwt_1.JwtModule.register({
                 secret: 'yourSecretKey',
                 signOptions: { expiresIn: '1h' },
-            }),],
-        providers: [auth_service_1.AuthService],
-        controllers: [auth_service_1.AuthService],
+            })],
+        providers: [app_service_1.AppService],
+        controllers: [app_controller_1.AppController],
     })
 ], AppModule);
 //# sourceMappingURL=app.module.js.map

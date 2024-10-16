@@ -1,16 +1,25 @@
-import { Document, Schema } from 'mongoose';
+import { Schema, Document } from 'mongoose';
 export declare const UserSchema: Schema<any, import("mongoose").Model<any, any, any, any, any, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, {
     email: string;
-    password: string;
     roles: string[];
+    password?: {
+        salt: string;
+        hash: string;
+    };
 }, Document<unknown, {}, import("mongoose").FlatRecord<{
     email: string;
-    password: string;
     roles: string[];
+    password?: {
+        salt: string;
+        hash: string;
+    };
 }>> & import("mongoose").FlatRecord<{
     email: string;
-    password: string;
     roles: string[];
+    password?: {
+        salt: string;
+        hash: string;
+    };
 }> & {
     _id: import("mongoose").Types.ObjectId;
 } & {
@@ -18,6 +27,9 @@ export declare const UserSchema: Schema<any, import("mongoose").Model<any, any, 
 }>;
 export interface User extends Document {
     email: string;
-    password: string;
+    password: {
+        salt: string;
+        hash: string;
+    };
     roles: string[];
 }

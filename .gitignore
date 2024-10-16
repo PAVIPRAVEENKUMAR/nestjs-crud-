@@ -2,6 +2,8 @@
 /dist
 /node_modules
 /build
+# Ignore env files
+.env
 
 # Logs
 logs

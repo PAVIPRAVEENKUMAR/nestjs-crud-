@@ -4,7 +4,10 @@ exports.UserSchema = void 0;
 const mongoose_1 = require("mongoose");
 exports.UserSchema = new mongoose_1.Schema({
     email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
+    password: {
+        salt: { type: String, required: true },
+        hash: { type: String, required: true }
+    },
     roles: { type: [String], default: ['user'] },
 });
 //# sourceMappingURL=user.schema.js.map
