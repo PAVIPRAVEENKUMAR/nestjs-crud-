@@ -6,23 +6,24 @@ export class JwtAuthGuard implements CanActivate {
   constructor(private authService: AuthService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request: Request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest();
     const authHeader = request.headers['authorization'];
-    if (!authHeader) {
-      throw new UnauthorizedException('Authorization header missing');
-    }
-    const token = authHeader.split(' ')[1];
 
+    if (!authHeader) {
+      throw new UnauthorizedException('Authorization header is missing');
+    }
+
+    const token = authHeader.split(' ')[1];
     if (!token) {
-      throw new UnauthorizedException('Token is required');
+      throw new UnauthorizedException('JWT token is required');
     }
 
     const decodedToken = await this.authService.validateToken(token);
     if (!decodedToken) {
       throw new UnauthorizedException('Invalid or expired token');
     }
-    request['user'] = decodedToken;  
 
+    request['user'] = decodedToken; 
     return true;
   }
 }

@@ -1,19 +1,19 @@
 import { Module } from '@nestjs/common';
-import { ItemModule } from './items/items.module';
 import { MongooseModule } from '@nestjs/mongoose';
+import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
-import config from './config/keys';
-import { JwtModule } from '@nestjs/jwt';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-
+import { ItemModule } from './items/items.module';
 
 @Module({
-  imports: [UsersModule,ItemModule, MongooseModule.forRoot(config.mongo_URI, {retryAttempts: 5,retryDelay: 5000}), JwtModule.register({
-    secret: 'yourSecretKey',
-    signOptions: { expiresIn: '1h' },
-  }),],
-  providers: [AppService],
-  controllers: [AppController],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    MongooseModule.forRoot(process.env.MONGO_URI), 
+    AuthModule,
+    UsersModule,
+    ItemModule,
+  ],
 })
 export class AppModule {}

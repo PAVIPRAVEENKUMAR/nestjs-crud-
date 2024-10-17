@@ -1,22 +1,24 @@
 import { Controller, Post, Body, Get, Headers, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from '../auth/auth.service';
+import {CreateUserDto} from './dto/createuser.dto';
+import {UsersService} from './users.service';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly authService: AuthService) {}
-
+  constructor(private readonly authService: AuthService,
+              private readonly usersService: UsersService
+  ) {}
   
   @Post('register')
-  async register(@Body() body: { email: string, password: string }) {
-    return this.authService.register(body.email, body.password);
+  async register(@Body() body:CreateUserDto) {
+    return this.usersService.createUser(body.email, body.password,'user');
   }
-
   
   @Post('login')
   async login(@Body() body: { email: string, password: string }) {
-    return this.authService.login(body.email, body.password);
+    const user = await this.authService.validateUser(body.email, body.password);
+    return this.authService.login(user);
   }
-
   
   @Get('profile')
   async getProfile(@Headers('authorization') authHeader: string) {
@@ -29,7 +31,6 @@ export class UsersController {
     const decodedToken = await this.authService.validateToken(token);
     return { message: 'Access granted to profile', user: decodedToken };
   }
-
   
   @Get('admin')
   async getAdmin(@Headers('authorization') authHeader: string) {
@@ -45,7 +46,6 @@ export class UsersController {
     if (!hasAdminRole) {
       throw new UnauthorizedException('Access denied. Admin role required');
     }
-
     return { message: 'Access granted to admin area' };
   }
 }

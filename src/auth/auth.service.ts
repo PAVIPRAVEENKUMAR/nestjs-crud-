@@ -1,74 +1,61 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import * as bcrypt from 'bcryptjs';  
-import { JwtService } from '@nestjs/jwt';
-import { User } from '../users/schema/user.schema'; 
+import { Injectable, UnauthorizedException,Inject, forwardRef} from '@nestjs/common';
+import * as jwt from 'jsonwebtoken';
+import { UsersService } from '../users/users.service';
+import * as crypto from 'crypto';
+import { JwtPayload } from './jwt.payload';
 
 @Injectable()
 export class AuthService {
-  private readonly jwtSecret = 'yourSecretKey';
-  private readonly saltRounds = 10;  
+  private readonly jwtSecret = process.env.JWT_SECRET;
+  private readonly saltLength = 16;
 
   constructor(
-    @InjectModel('User') private readonly userModel: Model<User>,
-    private readonly jwtService: JwtService
-  ) {
-    console.log('UserModel:', this.userModel);
-  }
+    @Inject(forwardRef(() => UsersService))
+    private usersService: UsersService) 
+    {}
 
-  
-  async hashPassword(password: string): Promise<string> {
-        const hash = await bcrypt.hash(password, this.saltRounds);
-    return hash;
-  }
-
-  
-  async validatePassword(password: string, hash: string): Promise<boolean> {
-    
-    const isMatch = await bcrypt.compare(password, hash);
-    return isMatch;
-  }
-
-  
-  async register(email: string, password: string): Promise<User> {
-    const existingUser = await this.userModel.findOne({ email });
-    if (existingUser) {
-      throw new UnauthorizedException('User already exists');
+  async validateUser(email: string, password: string): Promise<any> {
+    const user = await this.usersService.findUserByEmail(email);
+    if (user && await this.validatePassword(password, user.password, user.salt)) {
+      const { password, ...result } = user;
+      return result; 
     }
-
-    const hash = await this.hashPassword(password);
-    const newUser = new this.userModel({ email, password: hash });
-    return newUser.save();
+    throw new UnauthorizedException('Invalid credentials');
   }
 
-  
-  async login(email: string, password: string): Promise<{ token: string }> {
-    const user = await this.userModel.findOne({ email });
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    const isPasswordValid = await this.validatePassword(password, user.password);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    const payload = { email: user.email, sub: user._id, roles: user.roles };
-    const token = this.jwtService.sign(payload, { secret: this.jwtSecret, expiresIn: '1h' });
-    return { token };
+  async login(user: any): Promise<{ access_token: string }> {
+    const payload: JwtPayload = { email: user.email, sub: user._id, role: user.role };
+    const token = jwt.sign(payload, this.jwtSecret, { expiresIn: '1h' });
+    return { access_token: token }; 
   }
 
-  async validateToken(token: string): Promise<any> {
+  async validateToken(token: string): Promise<JwtPayload | null> {
     try {
-      return this.jwtService.verify(token, { secret: this.jwtSecret });
-    } catch (err) {
-      throw new UnauthorizedException('Invalid token');
+      return jwt.verify(token, this.jwtSecret) as JwtPayload; 
+    } catch (error) {
+      throw new UnauthorizedException('Invalid or expired token');
     }
   }
-  
-  async hasRole(user: any, requiredRole: string[]): Promise<boolean> {
-    const { roles } = user;
-    return roles && roles.includes(requiredRole);
+  async hashPassword(password: string): Promise<{ salt: string, hash: string }> {
+    const salt = crypto.randomBytes(this.saltLength).toString('hex');
+    const hash = await new Promise<string>((resolve, reject) => {
+      crypto.scrypt(password, salt, 64, (err, derivedKey) => {
+        if (err) reject(err);
+        resolve(derivedKey.toString('hex'));
+      });
+    });
+    return { salt, hash };  
+  }
+  async hasRole(decodedToken: any, roles: string[]): Promise<boolean> {
+    return roles.includes(decodedToken.role);
+  }
+  private async validatePassword(password: string, hash: string, salt: string): Promise<boolean> {
+    const hashedPassword = await new Promise<string>((resolve, reject) => {
+      crypto.scrypt(password, salt, 64, (err, derivedKey) => {
+        if (err) reject(err);
+        resolve(derivedKey.toString('hex'));
+      });
+    });
+    return hashedPassword === hash;
   }
 }

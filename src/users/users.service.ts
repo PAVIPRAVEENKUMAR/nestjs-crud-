@@ -1,24 +1,28 @@
-import { Injectable } from '@nestjs/common';
-import { User } from './user.entity';
+import { Injectable,forwardRef, Inject} from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { User } from './users.schema';
+import { AuthService } from '../auth/auth.service';  
 
 @Injectable()
 export class UsersService {
-  private users: User[] = [
-    {
-      id: 1,
-      username: 'john',
-      email: 'john@example.com',
-      password: 'changeme', 
-    },
-    {
-      id: 2,
-      username: 'chris',
-      email: 'chris@example.com',
-      password: 'secret',
-    },
-  ];
+  constructor(
+    @InjectModel(User.name) private userModel: Model<User>, 
+    @Inject(forwardRef(() => AuthService))
+    private readonly authService: AuthService,  
+  ) {}
+  
+  async createUser(email: string, password: string, role: string): Promise<User> {
+    const { salt, hash } = await this.authService.hashPassword(password);  
+    const newUser = new this.userModel({ email, password: hash, salt, role });
+    return newUser.save();  
+  }
 
-  async findOne(username: string): Promise<User | undefined> {
-    return this.users.find(user => user.username === username);
+  async findUserByEmail(email: string): Promise<User | undefined> {
+    return this.userModel.findOne({ email }).exec();  
+   }
+  
+  async findUserById(id: string): Promise<User | undefined> {
+    return this.userModel.findById(id).exec();  
   }
 }

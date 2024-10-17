@@ -8,7 +8,6 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';  
 import { SetMetadata } from '@nestjs/common';
 
-
 @ApiTags('items')
 @Controller('items')
 export class ItemsController {
@@ -16,15 +15,15 @@ export class ItemsController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  @ApiOperation({ summary: 'Get all items' })
-  @ApiResponse({ status: 200, description: 'Successfully retrieved items.' }  )
+  @ApiOperation({summary:'Get all items'})
+  @ApiResponse({status: 200, description:'Successfully retrieved items.'})
   async findAll(): Promise<Item[]> {
     return this.itemsService.findAll();
   }
 
   @UseGuards(JwtAuthGuard)
   @Get(':id')
-  @ApiOperation({ summary: 'Get the item by id'})
+  @ApiOperation({summary: 'Get the item by id'})
   @ApiResponse({status: 200, description: 'Successfully retrieved the item by id'})
   async findOne(@Param('id') id:string): Promise<Item> {
     return this.itemsService.findOne(id);
@@ -32,9 +31,9 @@ export class ItemsController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  @ApiOperation({ summary: 'Create a new item' })
-  @ApiResponse({ status: 201, description: 'Item created successfully.' })
-  create(@Body() createItemDto: CreateItemDto): Promise<Item> {
+  @ApiOperation({summary: 'Create a new item'})
+  @ApiResponse({status: 201, description:'Item created successfully.'})
+  create(@Body() createItemDto: CreateItemDto): Promise<Item>{
     return this.itemsService.create(createItemDto);
   }
 

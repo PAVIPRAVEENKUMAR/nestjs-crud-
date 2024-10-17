@@ -1,22 +1,22 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { AuthService } from './auth.service';
+import { JwtPayload } from './jwt.payload';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(private reflector: Reflector, private authService: AuthService) {}
+  constructor(private reflector: Reflector) {}
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
-    const roles = this.reflector.get<string[]>('roles', context.getHandler());
-    if (!roles) {
+  canActivate(context: ExecutionContext): boolean {
+    const requiredRoles = this.reflector.get<string[]>('roles', context.getHandler());
+    if (!requiredRoles) {
       return true; 
     }
 
     const request = context.switchToHttp().getRequest();
-    const user = request['user'];  
-    const hasRole = await this.authService.hasRole(user, roles);
-    if (!hasRole) {
-      throw new ForbiddenException('Access denied');
+    const user: JwtPayload = request.user;
+
+    if (!requiredRoles.includes(user.role)) {
+      throw new ForbiddenException(`Access denied: Requires role ${requiredRoles.join(' or ')}`);
     }
 
     return true;
