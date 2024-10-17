@@ -14,14 +14,14 @@ export class UsersService {
   
   async createUser(email: string, password: string, role: string): Promise<User> {
     const { salt, hash } = await this.authService.hashPassword(password);  
-    const newUser = new this.userModel({ email, password: hash, salt, role });
+    const newUser = new this.userModel({ email, password: hash, salt, role});
     return newUser.save();  
   }
 
   async findUserByEmail(email: string): Promise<User | undefined> {
     return this.userModel.findOne({ email }).exec();  
    }
-  
+
   async findUserById(id: string): Promise<User | undefined> {
     return this.userModel.findById(id).exec();  
   }
