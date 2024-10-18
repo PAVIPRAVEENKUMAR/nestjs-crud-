@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException,Inject, forwardRef} from '@nestjs/common';
+import { Injectable, UnauthorizedException,Inject, forwardRef, BadRequestException, InternalServerErrorException} from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
 import { UsersService } from '../users/users.service';
 import * as crypto from 'crypto';
@@ -20,13 +20,20 @@ export class AuthService {
       const { password, ...result } = user;
       return result; 
     }
-    throw new UnauthorizedException('Invalid credentials');
+    throw new BadRequestException('Invalid credentials');
   }
 
   async login(user: any): Promise<{ access_token: string }> {
+    if (!user || !user.email || !user._id || !user.role) {
+      throw new UnauthorizedException('Invalid user credentials or user data is incomplete');
+    }
     const payload: JwtPayload = { email: user.email, sub: user._id, role: user.role };
-    const token = jwt.sign(payload, this.jwtSecret, { expiresIn: '1h' });
-    return { access_token: token }; 
+    try {
+      const token = jwt.sign(payload, this.jwtSecret, { expiresIn: '24h' });
+      return { access_token: token };
+    } catch (error) {
+      throw new InternalServerErrorException('Error while generating JWT token');
+    }
   }
 
   async validateToken(token: string): Promise<JwtPayload | null> {
