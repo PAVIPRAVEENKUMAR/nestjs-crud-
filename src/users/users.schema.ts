@@ -6,14 +6,13 @@ export class User extends Document {
   @Prop({ required: true, unique: true })  
   email: string;
 
-  @Prop({ required: false })
+  @Prop({ required: true })
   password: string;
 
-  @Prop({ required: false })
+  @Prop({ required: true })
   salt: string; 
 
   @Prop({ default: 'user' })  
   role: string;
-
 }
 export const UserSchema = SchemaFactory.createForClass(User);

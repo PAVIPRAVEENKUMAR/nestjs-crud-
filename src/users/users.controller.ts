@@ -1,8 +1,7 @@
-import { Controller, Post, Body, Get, Headers, UnauthorizedException, BadRequestException, ConflictException, ForbiddenException } from '@nestjs/common';
+import { Controller, Post, Body, Get, Headers, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from '../auth/auth.service';
-import {CreateUserDto} from './dto/createuser.dto';
+import {CreateUserDto} from '../auth/dto/createuser.dto';
 import {UsersService} from './users.service';
-import { UserloginDto } from './dto/userlogin.dto';
 
 @Controller('users')
 export class UsersController {
@@ -11,64 +10,42 @@ export class UsersController {
   ) {}
   
   @Post('register')
-async register(@Body() body: CreateUserDto) {
-  if (!body.email || !body.password) {
-    throw new BadRequestException('Email and password are required');
+  async register(@Body() body:CreateUserDto) {
+    return this.usersService.createUser(body.email, body.password,'user');
   }
-  const existingUser = await this.usersService.findUserByEmail(body.email);
-  if (existingUser) {
-    throw new ConflictException('Email already in use');
-  }
-  return this.usersService.createUser(body.email, body.password, 'user');
-}
-
+  
   @Post('login')
-async login(@Body() body: UserloginDto) {
-  if (!body.email || !body.password) {
-    throw new BadRequestException('Email and password are required');
+  async login(@Body() body: { email: string, password: string }) {
+    const user = await this.authService.validateUser(body.email, body.password);
+    return this.authService.login(user);
   }
-  const user = await this.authService.validateUser(body.email, body.password);
-  if (!user) {
-    throw new UnauthorizedException('Invalid credentials');
-  }
-  return this.authService.login(user);
-}
   
-@Get('profile')
-async getProfile(@Headers('authorization') authHeader: string) {
-  if (!authHeader) {
-    throw new BadRequestException('Authorization header is missing');
-  }
-  const token = authHeader.split(' ')[1];
-  if (!token) {
-    throw new UnauthorizedException('Token is required');
-  }
-  const decodedToken = await this.authService.validateToken(token);
-  if (!decodedToken) {
-    throw new UnauthorizedException('Invalid or expired token'); 
+  @Get('profile')
+  async getProfile(@Headers('authorization') authHeader: string) {
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+      throw new UnauthorizedException('Token is required');
     }
-  return { message: 'Access granted to profile', user: decodedToken };
-}
+
+    const decodedToken = await this.authService.validateToken(token);
+    return { message: 'Access granted to profile', user: decodedToken };
+  }
   
-@Get('admin')
-async getAdmin(@Headers('authorization') authHeader: string) {
-  if (!authHeader) {
-    throw new BadRequestException('Authorization header is missing');
-  }
+  @Get('admin')
+  async getAdmin(@Headers('authorization') authHeader: string) {
+    const token = authHeader && authHeader.split(' ')[1];
 
-  const token = authHeader.split(' ')[1];
-
-  if (!token) {
-    throw new UnauthorizedException('Token is required'); 
-}
-  const decodedToken = await this.authService.validateToken(token);
-  if (!decodedToken) {
-    throw new UnauthorizedException('Invalid or expired token');
+    if (!token) {
+      throw new UnauthorizedException('Token is required');
     }
+
+    const decodedToken = await this.authService.validateToken(token);
+
     const hasAdminRole = await this.authService.hasRole(decodedToken, ['admin']);
-  if (!hasAdminRole) {
-    throw new ForbiddenException('Access denied. Admin role required'); 
+    if (!hasAdminRole) {
+      throw new UnauthorizedException('Access denied. Admin role required');
+    }
+    return { message: 'Access granted to admin area' };
   }
-  return { message: 'Access granted to admin area' };
-}
 }

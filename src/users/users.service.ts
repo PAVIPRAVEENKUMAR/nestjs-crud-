@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from './users.schema';
 import { AuthService } from '../auth/auth.service';  
+import { CreateUserDto } from 'src/auth/dto/createuser.dto';
 
 @Injectable()
 export class UsersService {
@@ -12,7 +13,8 @@ export class UsersService {
     private readonly authService: AuthService,  
   ) {}
   
-  async createUser(email: string, password: string, role: string): Promise<User> {
+  async createUser(createUserDto: CreateUserDto): Promise<User> {
+    const { email, password, role } = createUserDto;
     const { salt, hash } = await this.authService.hashPassword(password);  
     const newUser = new this.userModel({ email, password: hash, salt, role});
     return newUser.save();  
