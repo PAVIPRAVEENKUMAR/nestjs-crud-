@@ -2,9 +2,12 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { LoggingInterceptor } from './others/interceptors/Logging.Interceptors';
+
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.useGlobalInterceptors(new LoggingInterceptor());
   app.enableCors({
     origin: `*`,
     credentials: true,
@@ -22,6 +25,6 @@ async function bootstrap() {
       whitelist: true,
     }),
   );
-  await app.listen(3000);
+  await app.listen(1000);
 }
 bootstrap();

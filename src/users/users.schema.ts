@@ -1,18 +1,19 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-
+import { Exclude, Expose } from 'class-transformer';
 @Schema()
 export class User extends Document {
+  @Expose()
   @Prop({ required: true, unique: true })  
   email: string;
 
-  @Prop({ required: true })
-  password: string;
+  @Exclude()
+  @Prop({ required: false })
+  password: string; 
 
-  @Prop({ required: true })
-  salt: string; 
-
+  @Expose()
   @Prop({ default: 'user' })  
   role: string;
+
 }
 export const UserSchema = SchemaFactory.createForClass(User);

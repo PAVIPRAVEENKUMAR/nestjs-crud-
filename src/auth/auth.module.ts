@@ -1,11 +1,11 @@
-import { Module, forwardRef} from '@nestjs/common';
+import { Module, forwardRef, NestModule, MiddlewareConsumer, RequestMethod, UnauthorizedException} from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { JwtStrategy } from './jwt.strategy';
 import { RolesGuard } from './roles.guard';
 import { UsersModule } from '../users/users.module'; 
+import { Request, Response, NextFunction } from 'express';
 
 @Module({
   imports: [
@@ -15,8 +15,24 @@ import { UsersModule } from '../users/users.module';
       signOptions: { expiresIn: '24h' },
     }),
   ],
-  controllers: [AuthController],
+  controllers: [],
   providers: [AuthService, JwtAuthGuard, JwtStrategy, RolesGuard],
-  exports: [AuthService, JwtAuthGuard],
+  exports: [AuthService, JwtAuthGuard,JwtModule],
 })
-export class AuthModule {}
+export class AuthModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply((req: Request, res: Response, next: NextFunction) => {
+        const authHeader = req.headers['authorization'];
+        if (!authHeader) {
+          throw new UnauthorizedException('Authorization header is missing');
+        }
+        
+        if (!authHeader.startsWith('Bearer ')) {
+          throw new UnauthorizedException('Invalid Authorization format');
+        }
+        next();
+      })
+      .forRoutes({ path: 'profile',method: RequestMethod.ALL},{path:'admin', method: RequestMethod.ALL });
+  }
+}

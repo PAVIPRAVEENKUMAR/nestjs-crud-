@@ -42,7 +42,7 @@ export class ItemsController {
   @Delete(':id')
   @ApiOperation({ summary: 'Delete an item by ID' })
   @ApiResponse({ status: 200, description: 'Item deleted successfully.' })
-  delete(@Param('id') id): Promise<Item> {
+  async delete(@Param('id') id): Promise<Item> {
     return this.itemsService.delete(id);
   }
 
